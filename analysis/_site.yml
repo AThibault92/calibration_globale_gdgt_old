@@ -5,8 +5,6 @@ navbar:
   left:
   - text: Home
     href: index.html
-  - text: Exploration des données
-    href: Exploration_des_donnees.html
   - text: About
     href: about.html
   - text: License
