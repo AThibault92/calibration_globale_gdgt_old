@@ -1,14 +1,20 @@
-name: "calibration_globale_gdgt"
+name: calibration_globale_gdgt
 output_dir: ../docs
 navbar:
-  title: "calibration_globale_gdgt"
+  title: Calibration globale GDGT
   left:
   - text: Home
     href: index.html
+  - text: Exploration des données
+    href: Exploration_des_donnees.html
   - text: About
     href: about.html
   - text: License
     href: license.html
+  right:
+  - icon: fa-github
+    text: Source code
+    href: https://github.com/AThibault92/calibration_globale_gdgt
 output:
   workflowr::wflow_html:
     toc: yes
