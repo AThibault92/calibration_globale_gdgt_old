@@ -10,4 +10,18 @@ editor_options:
 
 Welcome to my research website.
 
-Click on this [link](exploratory_data_ana.html) to see my results.
+Cliquer [ici](exploratory_data_ana.html) pour l'analyse exploratoire des données
+
+```{r echo=FALSE, warning=FALSE}
+library(magrittr)
+library(kableExtra)
+
+data.frame(
+  Code = c(0),
+  Description = c(
+    "Régréssion linéaire simple entre MBT5ME et MAT"
+  )
+) %>%
+  knitr::kable("html", caption = "Liste des modèles") %>%
+  kable_styling(bootstrap_options = c("hover", "condensed")) 
+```

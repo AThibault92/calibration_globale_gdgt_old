@@ -1,6 +1,6 @@
 ---
-title: "exploratory_data_ana"
-author: "athibault92"
+title: "Exploration des données"
+author: "A. Thibault"
 date: "2020-07-02"
 output: workflowr::wflow_html
 editor_options:
@@ -20,15 +20,21 @@ ggthemr('dust')
 
 ## Introduction
 
-Exploration des variables du jeu de données GDGT
+Cette partie s'interesse à l'analyse du jeu de donnée des GDGT issue de Dearing Crampton Flood et al. 2019. Il s'agit d'une breve analyse des données présentes.
+
 
 ```{r warning=FALSE, message=FALSE}
 data_gdgt <- readr::read_delim("./data/Dearing_Crampton-Flood-etal_2019.tab", delim = "\t", skip = 40)
 
+```
+
+Résumé des données :
+
+```{r}
 skimr::skim(data_gdgt)
 ```
 
-Aucunes données manquantes
+Le jeu de donnée est complet, aucune donnée manquante.
 
 ## Carte des localisation
 
@@ -64,6 +70,19 @@ data_model %>%
 data_model %>%
   ggplot(aes(x=factor(mbt5me), y=mat_c)) +
   geom_boxplot()
+
+data_model %>%
+  dplyr::group_by(mbt5me) %>%
+  dplyr::summarise(
+    min = min(mat_c),
+    avg = mean(mat_c),
+    max = max(mat_c)
+  ) %>%
+  ggplot() + 
+  geom_ribbon(aes(x=mbt5me, ymin=min, ymax=max), fill = "gray50", alpha = 0.3, linetype = 2, size = 0.5, color = "gray50") +
+  geom_line(aes(x=mbt5me, y=avg), size = 1) 
+
+
 ```
 
 ## Quels sont les GDGT qui ont un lien avec la MAT ?
@@ -72,7 +91,23 @@ data_model %>%
 data_gdgt <- data_model %>%
   dplyr::select(starts_with("br"), "mat_c")
 
-bs_gdgt <- bootstraps(data_gdgt, times = 1000, apparent = TRUE)
+data_scale <- data_gdgt %>%
+  scale() %>%
+  as.data.frame()
+
+lm(mat_c ~ ., data = data_model) %>%
+  broom::tidy() %>%
+  dplyr::mutate(term = fct_reorder(term, estimate)) %>%
+  dplyr::filter(term != "(Intercept)") %>%
+  ggplot() +
+  geom_errorbar(aes(x=term, ymin = estimate-std.error, ymax=estimate+std.error)) + 
+  geom_point(aes(x=term, y=estimate)) +
+  geom_hline(yintercept = 0, color = "gray50", linetype = 2, size = 1) +
+  coord_flip()
+
+
+
+bs_gdgt <- bootstraps(data_model, times = 1000, apparent = TRUE)
 
 boot_models <- bs_gdgt %>%
   mutate(
@@ -97,6 +132,36 @@ boot_coefs %>%
   scale_fill_viridis_d()
 
 ```
+
+## Interactions entre les variables
+
+```{r}
+lm(mat_c ~ .^2, data = data_gdgt) %>%
+  tidy() %>%
+  dplyr::mutate(term = fct_reorder(term, estimate)) %>%
+  dplyr::filter(term != "(Intercept)" & p.value < 0.05) %>%
+  ggplot() +
+  geom_errorbar(aes(x=term, ymin = estimate-std.error, ymax=estimate+std.error)) + 
+  geom_point(aes(x=term, y=estimate)) +
+  geom_hline(yintercept = 0, color = "gray50", linetype = 2, size = 1) +
+  coord_flip()
+
+```
+
+
+```{r}
+lm(mat_c ~ ., data = data_gdgt) %>%
+  glance()
+
+lm(mat_c ~ br_gdgt_ii_ia + br_gdgt_ia*br_gdgt_ii_ia + br_gdgt_ib*br_gdgt_ii_ia +
+     br_gdgt_ic*br_gdgt_i_ic + br_gdgt_i_ia*br_gdgt_i_ib_2 + br_gdgt_i_ia*br_gdgt_ii_ia +
+     br_gdgt_i_ia*br_gdgt_ii_ia_2 + br_gdgt_i_ia_2*br_gdgt_ii_ia + br_gdgt_i_ia_2*br_gdgt_ii_ia_2 +
+     br_gdgt_ii_ia*br_gdgt_ii_ia_2,
+   data = data_gdgt) %>%
+  glance()
+
+```
+
 
 
 
